@@ -15,12 +15,14 @@ echo -e "\e[1;32m Allow incomming NGINX HTTP connections\e[0m"
 echo
 
 #--created the dir
-sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
+sudo mkdir -p /data/web_static/releases/test/
+sudo mkdir -p /data/web_static/shared/
+
 echo -e "\e[1;32m directories created"
 echo
 
 #--adds test string
-echo "<h1>Welcome to www.dev-sanctus.tech</h1>" > /data/web_static/releases/test/index.html
+echo "<h1>Welcome to www.dev-salieu.tech</h1>" > /data/web_static/releases/test/index.html
 echo -e "\e[1;32m Test string added\e[0m"
 echo
 
@@ -35,9 +37,27 @@ echo
 
 #--create symbolic link
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
-sudo chown -hR ubuntu:ubuntu /data
+sudo chown -hR ubuntu:ubuntu /data/
 
-sudo sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
+printf %s "server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    add_header X-Served-By $HOSTNAME;
+    root   /var/www/html;
+    index  index.html index.htm;
+    location /hbnb_static {
+        alias /data/web_static/current;
+        index index.html index.htm;
+    }
+    location /redirect_me {
+        return 301 http://cuberule.com/;
+    }
+    error_page 404 /404.html;
+    location /404 {
+      root /var/www/html;
+      internal;
+    }
+}" > /etc/nginx/sites-available/default
 
 sudo ln -sf '/etc/nginx/sites-available/default' '/etc/nginx/sites-enabled/default'
 echo -e "\e[1;32m Symbolic link created\e[0m"
